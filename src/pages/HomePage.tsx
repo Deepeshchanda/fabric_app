@@ -89,7 +89,7 @@ const domainTiles: DomainTile[] = [
   {
     title: 'S&T (Margin Analysis)',
     image:
-      'https://images.unsplash.com/photo-1642543348745-41a89fca6f0f?auto=format&fit=crop&w=1400&q=60',
+      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1400&q=60',
     route: '/dashboards/pl',
   },
   {
@@ -280,12 +280,12 @@ export function HomePage() {
       <div className="fixed inset-0 -z-10 bg-[linear-gradient(145deg,rgba(255,255,255,0.18)_0%,transparent_45%,rgba(109,80,224,0.10)_100%)]" />
 
       <header className="sticky top-0 z-30 border-b border-violet-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-14 w-full max-w-[1460px] items-center justify-between px-4 lg:px-6">
+        <div className="mx-auto flex h-12 w-full max-w-[1320px] items-center justify-between px-4 lg:px-5">
           <div className="flex items-center gap-2 text-violet-700">
             <div className="grid h-5 w-5 place-items-center rounded-full bg-violet-700 text-[10px] font-bold text-white">
               ◉
             </div>
-            <span className="text-[21px] font-semibold leading-none">Ask.mi</span>
+            <span className="text-[18px] font-semibold leading-none">Ask.mi</span>
           </div>
 
           <div className="flex items-center gap-3 lg:gap-5">
@@ -351,14 +351,14 @@ export function HomePage() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-[1460px] px-4 pb-10 pt-8 lg:px-6">
+      <main className="mx-auto w-full max-w-[1320px] px-4 pb-8 pt-6 lg:px-5">
         <section className="reveal-up">
-          <h1 className="welcome-flow text-[33px] font-semibold tracking-tight text-slate-900 lg:text-[37px]">
+          <h1 className="welcome-flow text-[24px] font-semibold tracking-tight text-slate-900 lg:text-[28px]">
             Welcome back, <span className="text-violet-700">Deepesh Kumar Chanda</span>
           </h1>
 
-          <div className="mt-6 flex items-center gap-3 rounded-2xl border border-white/80 bg-white px-4 py-3 shadow-lg shadow-violet-900/10">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-orange-300 to-violet-500 text-white">
+          <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-white/80 bg-white px-3 py-2.5 shadow-lg shadow-violet-900/10">
+            <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-orange-300 to-violet-500 text-white">
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="6" />
                 <path d="m19 19-3.5-3.5" />
@@ -367,13 +367,13 @@ export function HomePage() {
             <input
               type="text"
               placeholder="Try asking Blink - Show me the OpEx breakdown"
-              className="w-full bg-transparent text-[21px] text-slate-600 outline-none placeholder:text-slate-400 md:text-[24px]"
+              className="w-full bg-transparent text-[15px] text-slate-600 outline-none placeholder:text-slate-400 md:text-[17px]"
             />
             <button
               type="button"
-              className="grid h-9 w-9 place-items-center rounded-full border-2 border-violet-600 text-violet-600"
+              className="grid h-8 w-8 place-items-center rounded-full border-2 border-violet-600 text-violet-600"
             >
-              <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M5 12h14" />
                 <path d="m13 5 7 7-7 7" />
               </svg>
@@ -381,20 +381,20 @@ export function HomePage() {
           </div>
         </section>
 
-        <section className="mt-9 reveal-up">
+        <section className="mt-7 reveal-up">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-[33px] font-semibold tracking-tight text-slate-900 md:text-[36px]">Favourite Dashboards</h2>
+            <h2 className="text-[24px] font-semibold tracking-tight text-slate-900 md:text-[27px]">Favourite Dashboards</h2>
             <div className="flex items-center gap-3">
               {mode === 'admin' && (
                 <button
                   type="button"
                   onClick={() => setShowAddModal(true)}
-                  className="rounded-lg bg-violet-700 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-violet-600"
+                  className="rounded-md bg-violet-700 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-violet-600"
                 >
                   Add Placeholder
                 </button>
               )}
-              <button type="button" className="text-sm font-semibold text-violet-700 hover:underline">
+              <button type="button" className="text-[13px] font-semibold text-violet-700 hover:underline">
                 View All
               </button>
             </div>
@@ -404,14 +404,14 @@ export function HomePage() {
             <button
               type="button"
               onClick={prevCards}
-              className="absolute -left-2 top-1/2 z-10 -translate-y-1/2 text-4xl text-slate-400 transition hover:text-violet-700"
+              className="absolute -left-1 top-1/2 z-10 -translate-y-1/2 text-3xl text-slate-400 transition hover:text-violet-700"
             >
               ‹
             </button>
             <button
               type="button"
               onClick={nextCards}
-              className="absolute -right-2 top-1/2 z-10 -translate-y-1/2 text-4xl text-slate-400 transition hover:text-violet-700"
+              className="absolute -right-1 top-1/2 z-10 -translate-y-1/2 text-3xl text-slate-400 transition hover:text-violet-700"
             >
               ›
             </button>
@@ -420,11 +420,11 @@ export function HomePage() {
               {visibleCards.map((card) => (
                 <article
                   key={card.id}
-                  className="rounded-2xl border border-white/80 bg-white/95 p-4 shadow-md shadow-violet-900/10"
+                  className="rounded-xl border border-white/80 bg-white/95 p-3 shadow-md shadow-violet-900/10"
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-violet-700 text-white">
-                      <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                  <div className="flex items-start gap-2.5">
+                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-violet-700 text-white">
+                      <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M4 18h16" />
                         <path d="M7 14V9" />
                         <path d="M12 14V6" />
@@ -433,31 +433,31 @@ export function HomePage() {
                     </div>
 
                     <div className="min-w-0 flex-1 pr-1">
-                      <h3 className="line-clamp-2 min-h-[2.6em] text-[18px] font-semibold leading-[1.28] text-slate-900 md:text-[20px]">
+                      <h3 className="line-clamp-2 min-h-[2.5em] text-[16px] font-semibold leading-[1.25] text-slate-900 md:text-[17px]">
                         {card.title}
                       </h3>
-                      <p className="mt-1 line-clamp-2 min-h-[2.5em] text-[13px] leading-[1.25] text-slate-500 md:text-[14px]">
+                      <p className="mt-1 line-clamp-2 min-h-[2.3em] text-[12px] leading-[1.25] text-slate-500 md:text-[13px]">
                         {card.description}
                       </p>
                     </div>
 
-                    <button type="button" className="pt-0.5 text-xl text-slate-300 hover:text-violet-700">
+                    <button type="button" className="pt-0.5 text-lg text-slate-300 hover:text-violet-700">
                       ☆
                     </button>
                   </div>
 
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-2.5 flex gap-2">
                     <button
                       type="button"
                       onClick={() => navigate('/dashboards/sales')}
-                      className="w-full rounded-lg bg-violet-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-violet-600"
+                      className="w-full rounded-md bg-violet-700 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-violet-600"
                     >
                       Open report 📊
                     </button>
                     {mode === 'admin' && (
                       <button
                         type="button"
-                        className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-violet-300 hover:text-violet-700"
+                        className="rounded-md border border-slate-200 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:border-violet-300 hover:text-violet-700"
                       >
                         Edit
                       </button>
@@ -469,11 +469,11 @@ export function HomePage() {
           </div>
         </section>
 
-        <section className="mt-10 reveal-up">
+        <section className="mt-8 reveal-up">
           <div className="mb-3 flex items-center gap-3">
-            <h2 className="text-[38px] font-semibold tracking-tight text-slate-900 md:text-[42px]">Domains</h2>
-            <button type="button" className="grid h-9 w-9 place-items-center rounded-full text-violet-700">
-              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
+            <h2 className="text-[27px] font-semibold tracking-tight text-slate-900 md:text-[30px]">Domains</h2>
+            <button type="button" className="grid h-8 w-8 place-items-center rounded-full text-violet-700">
+              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="7" />
                 <path d="m20 20-3.5-3.5" />
               </svg>
@@ -486,11 +486,11 @@ export function HomePage() {
                 key={tile.title}
                 type="button"
                 onClick={() => setSelectedDomain(tile)}
-                className="group relative h-28 overflow-hidden rounded-2xl text-left shadow-md shadow-violet-900/20 transition duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-violet-900/30 md:h-34"
+                className="group relative h-24 overflow-hidden rounded-xl text-left shadow-md shadow-violet-900/20 transition duration-300 hover:scale-[1.01] hover:shadow-xl hover:shadow-violet-900/30 md:h-[7.25rem]"
               >
                 <img src={tile.image} alt={tile.title} className="h-full w-full object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-r from-violet-950/82 to-violet-600/48" />
-                <span className="absolute bottom-3 left-4 max-w-[85%] text-[22px] font-semibold leading-[1.1] text-white md:text-[24px]">
+                <span className="absolute bottom-2.5 left-3.5 max-w-[85%] text-[15px] font-semibold leading-[1.1] text-white md:text-[16px]">
                   {tile.title}
                 </span>
               </button>
@@ -507,20 +507,20 @@ export function HomePage() {
             className="fixed inset-0 z-40 bg-slate-900/20"
             onClick={() => setSelectedDomain(null)}
           />
-          <aside className="fixed right-0 top-0 z-50 h-full w-full max-w-[640px] border-l border-slate-200 bg-white shadow-2xl lg:w-[38vw]">
+          <aside className="fixed right-0 top-0 z-50 h-full w-full max-w-[560px] border-l border-slate-200 bg-white shadow-2xl lg:w-[34vw]">
             <div className="flex h-full flex-col">
-              <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-                <h3 className="text-[29px] font-semibold text-slate-900">{selectedDomain.title} Dashboards</h3>
+              <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3.5">
+                <h3 className="text-[19px] font-semibold text-slate-900">{selectedDomain.title} Dashboards</h3>
                 <button
                   type="button"
                   onClick={() => setSelectedDomain(null)}
-                  className="text-2xl text-slate-500 transition hover:text-slate-900"
+                  className="text-xl text-slate-500 transition hover:text-slate-900"
                 >
                   ×
                 </button>
               </div>
 
-              <div className="border-b border-slate-200 px-6 py-4">
+              <div className="border-b border-slate-200 px-5 py-3.5">
                 <div className="grid gap-3 md:grid-cols-2">
                   <label className="text-xs font-medium text-slate-700">
                     Search :
@@ -528,7 +528,7 @@ export function HomePage() {
                       value={panelSearch}
                       onChange={(event) => setPanelSearch(event.target.value)}
                       placeholder="Dashboard name"
-                      className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-violet-400"
+                      className="mt-1 w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-[13px] outline-none focus:border-violet-400"
                     />
                   </label>
                   <label className="text-xs font-medium text-slate-700">
@@ -536,7 +536,7 @@ export function HomePage() {
                     <select
                       value={panelBU}
                       onChange={(event) => setPanelBU(event.target.value)}
-                      className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-violet-400"
+                      className="mt-1 w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-[13px] outline-none focus:border-violet-400"
                     >
                       <option>Reports</option>
                       <option>All</option>
@@ -545,18 +545,18 @@ export function HomePage() {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-5 py-4">
-                <div className="space-y-3">
+              <div className="flex-1 overflow-y-auto px-4 py-3.5">
+                <div className="space-y-2.5">
                   {panelItems.map((item) => (
                     <button
                       key={item.id}
                       type="button"
                       onClick={() => navigate(item.route)}
-                      className="flex w-full items-start justify-between rounded-2xl border border-slate-200 px-4 py-3 text-left transition hover:border-violet-300 hover:bg-violet-50/40"
+                      className="flex w-full items-start justify-between rounded-xl border border-slate-200 px-3 py-2.5 text-left transition hover:border-violet-300 hover:bg-violet-50/40"
                     >
-                      <div className="flex items-start gap-3">
-                        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-violet-700 text-white">
-                          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+                      <div className="flex items-start gap-2.5">
+                        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-violet-700 text-white">
+                          <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M4 18h16" />
                             <path d="M7 14V9" />
                             <path d="M12 14V6" />
@@ -564,24 +564,24 @@ export function HomePage() {
                           </svg>
                         </span>
                         <span>
-                          <span className="block text-[26px] font-semibold text-slate-900">{item.title}</span>
-                          <span className="block text-[21px] text-slate-500">{item.description}</span>
+                          <span className="block text-[16px] font-semibold text-slate-900">{item.title}</span>
+                          <span className="block text-[14px] text-slate-500">{item.description}</span>
                         </span>
                       </div>
-                      <span className="pt-1 text-2xl text-slate-300">☆</span>
+                      <span className="pt-1 text-xl text-slate-300">☆</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="border-t border-slate-200 p-5">
+              <div className="border-t border-slate-200 p-4">
                 <button
                   type="button"
                   onClick={() => navigate(selectedDomain.route)}
-                  className="flex w-full items-center gap-3 rounded-2xl bg-violet-100 px-4 py-4 text-left text-violet-900 transition hover:bg-violet-200"
+                  className="flex w-full items-center gap-2.5 rounded-xl bg-violet-100 px-3 py-3 text-left text-violet-900 transition hover:bg-violet-200"
                 >
-                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-violet-700 text-white">▣</span>
-                  <span className="text-[27px] font-semibold">Explore - Create your own reports</span>
+                  <span className="grid h-9 w-9 place-items-center rounded-lg bg-violet-700 text-white">▣</span>
+                  <span className="text-[16px] font-semibold">Explore - Create your own reports</span>
                 </button>
               </div>
             </div>
