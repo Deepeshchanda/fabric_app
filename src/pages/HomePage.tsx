@@ -215,7 +215,6 @@ export function HomePage() {
 
   const [mode, setMode] = useState<UserMode>('user');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [futureToggle, setFutureToggle] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState<DomainTile | null>(null);
   const [carouselStart, setCarouselStart] = useState(0);
@@ -289,73 +288,65 @@ export function HomePage() {
             <span className="text-[21px] font-semibold leading-none">Ask.mi</span>
           </div>
 
-          <div className="hidden items-center gap-6 lg:flex">
-            {navItems.map((item) => (
-              <button
-                key={item}
-                type="button"
-                className="text-[12px] font-semibold tracking-wide text-slate-700 transition hover:text-violet-700"
-              >
-                {item}
-              </button>
-            ))}
+          <div className="flex items-center gap-3 lg:gap-5">
+            <div className="hidden items-center gap-6 lg:flex">
+              {navItems.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  className="text-[12px] font-semibold tracking-wide text-slate-700 transition hover:text-violet-700"
+                >
+                  {item}
+                </button>
+              ))}
 
-            <div className="rounded-full border border-violet-200 bg-violet-50 p-0.5">
-              <button
-                type="button"
-                onClick={() => setMode('user')}
-                className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                  mode === 'user' ? 'bg-violet-700 text-white' : 'text-violet-700'
-                }`}
-              >
-                Normal User
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('admin')}
-                className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                  mode === 'admin' ? 'bg-violet-700 text-white' : 'text-violet-700'
-                }`}
-              >
-                Admin
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setFutureToggle((current) => !current)}
-              className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                futureToggle ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-600'
-              }`}
-            >
-              Toggle
-            </button>
-          </div>
-
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowProfileMenu((current) => !current)}
-              className="grid h-9 w-9 place-items-center rounded-full bg-violet-700 text-[11px] font-bold text-white shadow"
-              aria-label="Profile actions"
-            >
-              DC
-            </button>
-
-            {showProfileMenu && (
-              <div className="absolute right-0 top-11 z-40 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl">
-                <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Signed in as</p>
-                <p className="mt-2 text-sm font-semibold text-slate-900">Deepesh chanda</p>
-                <p className="text-xs text-slate-600">deepesh.chanda@drreddys.com</p>
+              <div className="rounded-full border border-violet-200 bg-violet-50 p-0.5">
                 <button
                   type="button"
-                  onClick={() => void signOut()}
-                  className="mt-3 w-full rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
+                  onClick={() => setMode('user')}
+                  className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
+                    mode === 'user' ? 'bg-violet-700 text-white' : 'text-violet-700'
+                  }`}
                 >
-                  Sign out
+                  Normal User
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode('admin')}
+                  className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
+                    mode === 'admin' ? 'bg-violet-700 text-white' : 'text-violet-700'
+                  }`}
+                >
+                  Admin
                 </button>
               </div>
-            )}
+            </div>
+
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowProfileMenu((current) => !current)}
+                className="grid h-9 w-9 place-items-center rounded-full bg-violet-700 text-[11px] font-bold text-white shadow"
+                aria-label="Profile actions"
+              >
+                DC
+              </button>
+
+              {showProfileMenu && (
+                <div className="absolute right-0 top-11 z-40 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl">
+                  <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Signed in as</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">Deepesh chanda</p>
+                  <p className="text-xs text-slate-600">deepesh.chanda@drreddys.com</p>
+                  <button
+                    type="button"
+                    onClick={() => void signOut()}
+                    className="mt-3 w-full rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
