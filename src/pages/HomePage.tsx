@@ -354,7 +354,13 @@ export function HomePage() {
       <main className="mx-auto w-full max-w-[1320px] px-4 pb-8 pt-6 lg:px-5">
         <section className="reveal-up">
           <h1 className="welcome-flow text-[24px] font-semibold tracking-tight text-slate-900 lg:text-[28px]">
-            Welcome back, <span className="text-violet-700">Deepesh Kumar Chanda</span>
+            Welcome back,
+            <span className="name-marquee text-violet-700" role="text" aria-label="Deepesh Kumar Chanda">
+              <span className="name-marquee__track" aria-hidden="true">
+                <span>Deepesh Kumar Chanda</span>
+                <span>Deepesh Kumar Chanda</span>
+              </span>
+            </span>
           </h1>
 
           <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-white/80 bg-white px-3 py-2.5 shadow-lg shadow-violet-900/10">
