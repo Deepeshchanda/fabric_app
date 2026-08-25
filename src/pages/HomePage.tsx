@@ -455,7 +455,7 @@ export function HomePage() {
                   <div className="mt-2.5 flex gap-2">
                     <button
                       type="button"
-                      onClick={() => navigate('/dashboards/sales')}
+                      onClick={() => window.open('/dashboards/sales', '_blank', 'noopener,noreferrer')}
                       className="w-full rounded-md bg-violet-700 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-violet-600"
                     >
                       Open report 📊
