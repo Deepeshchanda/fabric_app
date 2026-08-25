@@ -57,6 +57,27 @@
   .welcome-flow {
     animation: welcomeFlow 900ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
+
+  .name-marquee {
+    display: inline-flex;
+    max-width: 18ch;
+    margin-left: 0.4ch;
+    vertical-align: baseline;
+    overflow: hidden;
+    white-space: nowrap;
+    mask-image: linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%);
+  }
+
+  .name-marquee__track {
+    display: inline-flex;
+    gap: 2ch;
+    min-width: max-content;
+    animation: nameMarquee 7.2s linear infinite;
+  }
+
+  .name-marquee__track span {
+    display: inline-block;
+  }
 }
 
 @keyframes revealUp {
@@ -78,5 +99,14 @@
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@keyframes nameMarquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - 1ch));
   }
 }
