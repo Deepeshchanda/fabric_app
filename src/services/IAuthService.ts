@@ -42,6 +42,26 @@ export interface IAuthService {
   initEmbeddedAuth(): Promise<AuthUser | null>;
 }
 
+function resolveDisplayName(email: string, providedName?: string): string {
+  const trimmedName = providedName?.trim();
+  if (trimmedName && !trimmedName.includes('@')) return trimmedName;
+
+  const localPart = email.split('@')[0]?.trim() || '';
+  const normalized = localPart
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/[._+-]+/g, ' ')
+    .replace(/\d+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!normalized) return 'User';
+
+  return normalized
+    .split(' ')
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1).toLowerCase())
+    .join(' ');
+}
+
 /** Map the raw session user shape to the trimmed view used in the UI. */
 export function toAuthUser(user: {
   id: string;
@@ -51,6 +71,6 @@ export function toAuthUser(user: {
   return {
     id: user.id,
     email: user.email,
-    name: user.name || user.email.split('@')[0],
+    name: resolveDisplayName(user.email, user.name),
   };
 }
