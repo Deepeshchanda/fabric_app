@@ -10,6 +10,8 @@ services:
       enabled: true
     allowedRedirectUris:
       - http://localhost:5173
+      - http://127.0.0.1:5173
+      - https://great-fern-ae9be9306e-southeastasia.webapp.fabricapps.net
   data:
     enabled: true
     dialect: mssql
@@ -18,3 +20,7 @@ services:
     folder: dist
     buildCommand: npm run build:fabric
     indexDocument: index.html
+  storage:
+    enabled: false
+  functions:
+    enabled: false

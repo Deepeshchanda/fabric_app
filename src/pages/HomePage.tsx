@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { isAdminEmail } from '@/admin';
 import { useAuth } from '@/hooks/AuthContext';
 
 type UserMode = 'admin' | 'user';
@@ -211,7 +212,7 @@ const domainMap: Record<string, PanelDashboard[]> = {
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
 
   const [mode, setMode] = useState<UserMode>('user');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -227,6 +228,16 @@ export function HomePage() {
     imageUrl: '',
   });
   const [cards, setCards] = useState<DashboardCard[]>(baseCards);
+
+  const userDisplayName = user?.name?.trim() || user?.email?.split('@')[0] || 'User';
+  const userEmail = user?.email || 'Not available';
+  const isAdminUser = isAdminEmail(user?.email);
+  const userInitials = userDisplayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('') || 'U';
 
   const visibleCards = useMemo(() => {
     const max = cards.length;
@@ -289,37 +300,39 @@ export function HomePage() {
           </div>
 
           <div className="flex items-center gap-3 lg:gap-5">
-            <div className="hidden items-center gap-6 lg:flex">
+            <div className="flex items-center gap-3 md:gap-6">
               {navItems.map((item) => (
                 <button
                   key={item}
                   type="button"
-                  className="text-[12px] font-semibold tracking-wide text-slate-700 transition hover:text-violet-700"
+                  className="text-[10px] font-semibold tracking-wide text-slate-700 transition hover:text-violet-700 sm:text-[11px] md:text-[12px]"
                 >
                   {item}
                 </button>
               ))}
 
-              <div className="rounded-full border border-violet-200 bg-violet-50 p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setMode('user')}
-                  className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                    mode === 'user' ? 'bg-violet-700 text-white' : 'text-violet-700'
-                  }`}
-                >
-                  Normal User
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode('admin')}
-                  className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
-                    mode === 'admin' ? 'bg-violet-700 text-white' : 'text-violet-700'
-                  }`}
-                >
-                  Admin
-                </button>
-              </div>
+              {isAdminUser && (
+                <div className="rounded-full border border-violet-200 bg-violet-50 p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setMode('user')}
+                    className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
+                      mode === 'user' ? 'bg-violet-700 text-white' : 'text-violet-700'
+                    }`}
+                  >
+                    Normal User
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode('admin')}
+                    className={`rounded-full px-3 py-1 text-[11px] font-semibold ${
+                      mode === 'admin' ? 'bg-violet-700 text-white' : 'text-violet-700'
+                    }`}
+                  >
+                    Admin
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="relative">
@@ -329,14 +342,14 @@ export function HomePage() {
                 className="grid h-9 w-9 place-items-center rounded-full bg-violet-700 text-[11px] font-bold text-white shadow"
                 aria-label="Profile actions"
               >
-                DC
+                {userInitials}
               </button>
 
               {showProfileMenu && (
                 <div className="absolute right-0 top-11 z-40 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl">
                   <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500">Signed in as</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">Deepesh chanda</p>
-                  <p className="text-xs text-slate-600">deepesh.chanda@drreddys.com</p>
+                  <p className="mt-2 text-sm font-semibold text-slate-900">{userDisplayName}</p>
+                  <p className="text-xs text-slate-600">{userEmail}</p>
                   <button
                     type="button"
                     onClick={() => void signOut()}
@@ -355,10 +368,10 @@ export function HomePage() {
         <section className="reveal-up">
           <h1 className="welcome-flow text-[24px] font-semibold tracking-tight text-slate-900 lg:text-[28px]">
             Welcome back,
-            <span className="name-marquee text-violet-700" role="text" aria-label="Deepesh Kumar Chanda">
+            <span className="name-marquee text-violet-700" role="text" aria-label={userDisplayName}>
               <span className="name-marquee__track" aria-hidden="true">
-                <span>Deepesh Kumar Chanda</span>
-                <span>Deepesh Kumar Chanda</span>
+                <span>{userDisplayName}</span>
+                <span>{userDisplayName}</span>
               </span>
             </span>
           </h1>
