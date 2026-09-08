@@ -1,191 +1,58 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { isAdminEmail } from '@/admin';
 import { useAuth } from '@/hooks/AuthContext';
+import { fetchAdminEmails } from '@/services/adminUsers';
+import {
+  addFavorite,
+  fetchFavorites,
+  removeFavorite,
+  type FavoriteReport,
+} from '@/services/reportFavorites';
+import {
+  createReportLink,
+  fetchDistinctBUs,
+  fetchDistinctDomains,
+  fetchReports,
+  type ReportLinkItem,
+} from '@/services/reportLinks';
 
 type UserMode = 'admin' | 'user';
-
-type DashboardCard = {
-  id: string;
-  title: string;
-  description: string;
-  domain: string;
-};
 
 type DomainTile = {
   title: string;
   image: string;
 };
 
-type PanelDashboard = {
-  id: string;
-  title: string;
-  description: string;
-};
-
 type NewReportForm = {
-  title: string;
-  link: string;
-  department: string;
-  imageUrl: string;
+  Domain_Name: string;
+  BU: string;
+  Report_Name: string;
+  Report_Desc: string;
+  Report_URL: string;
 };
 
 const navItems = ['DOWNLOAD DATA', 'DATA PULSE', 'LEARNING', 'NEED HELP'];
 
-const baseCards: DashboardCard[] = [
-  {
-    id: 'DB-001',
-    title: 'Executive Sales Summary',
-    description: 'High-level sales performance across regions.',
-    domain: 'Sales',
-  },
-  {
-    id: 'DB-002',
-    title: 'Finance Performance Tracker',
-    description: 'Monitor costs, revenue and profitability trends.',
-    domain: 'P&L',
-  },
-  {
-    id: 'DB-003',
-    title: 'Operations Monitoring',
-    description: 'Track operational KPIs and performance metrics.',
-    domain: 'Business Performance',
-  },
-  {
-    id: 'DB-004',
-    title: 'Procurement Health View',
-    description: 'Supplier and spend overview in one place.',
-    domain: 'Procurement',
-  },
-  {
-    id: 'DB-005',
-    title: 'Portfolio Momentum',
-    description: 'Portfolio priorities and investment visibility.',
-    domain: 'Portfolio',
-  },
-];
-
-const domainTiles: DomainTile[] = [
-  {
-    title: 'Sales',
-    image:
-      'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=60',
-  },
-  {
-    title: 'Global Opex',
-    image:
-      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=60',
-  },
-  {
-    title: 'P&L',
-    image:
-      'https://images.unsplash.com/photo-1554224154-22dec7ec8818?auto=format&fit=crop&w=1400&q=60',
-  },
-  {
-    title: 'S&T (Margin Analysis)',
-    image:
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1400&q=60',
-  },
-  {
-    title: 'Procurement',
-    image:
-      'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1400&q=60',
-  },
-  {
-    title: 'Portfolio',
-    image:
-      'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1400&q=60',
-  },
-  {
-    title: 'Business Performance',
-    image:
-      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1400&q=60',
-  },
-];
-
-const globalOpexDashboards: PanelDashboard[] = [
-  {
-    id: 'OPX-001',
-    title: 'Global Opex',
-    description: 'Operating expenses overview with cost pools',
-  },
-  {
-    id: 'OPX-002',
-    title: 'Staff Cost',
-    description: 'Headcount and employee cost analysis',
-  },
-  {
-    id: 'OPX-003',
-    title: 'Travex-Travel Analysis',
-    description: 'Travel expenses and trends',
-  },
-  {
-    id: 'OPX-004',
-    title: 'Employee Reimbursement',
-    description: 'Reimbursement tracking and expense breakdown',
-  },
-  {
-    id: 'OPX-005',
-    title: 'Opex Trend',
-    description: 'Monthly operating expense trends',
-  },
-  {
-    id: 'OPX-006',
-    title: 'Legal Spend',
-    description: 'Legal expenditure reporting',
-  },
-];
-
-const domainMap: Record<string, PanelDashboard[]> = {
-  Sales: [
-    {
-      id: 'SLS-001',
-      title: 'Sales KPI Board',
-      description: 'Revenue, growth and conversion summary',
-    },
-    {
-      id: 'SLS-002',
-      title: 'Region Mix',
-      description: 'Performance by market and territory',
-    },
-  ],
-  'Global Opex': globalOpexDashboards,
-  'P&L': [
-    {
-      id: 'PL-001',
-      title: 'P&L Snapshot',
-      description: 'Revenue, cost, margin and variance view',
-    },
-  ],
-  'S&T (Margin Analysis)': [
-    {
-      id: 'ST-001',
-      title: 'Margin Analyzer',
-      description: 'Scenario-level margin trend analysis',
-    },
-  ],
-  Procurement: [
-    {
-      id: 'PRC-001',
-      title: 'Procurement Insights',
-      description: 'Supplier health and purchase order lens',
-    },
-  ],
-  Portfolio: [
-    {
-      id: 'PFL-001',
-      title: 'Portfolio Overview',
-      description: 'Project and investment tracking cockpit',
-    },
-  ],
-  'Business Performance': [
-    {
-      id: 'BIZ-001',
-      title: 'Executive Scorecard',
-      description: 'Organization-wide KPI and trend analyzer',
-    },
-  ],
+// Background images for known domains; unrecognized Domain_Name values fall back to DEFAULT_DOMAIN_IMAGE.
+const DOMAIN_TILE_IMAGES: Record<string, string> = {
+  Sales:
+    'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=60',
+  'Global Opex':
+    'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=60',
+  'P&L':
+    'https://images.unsplash.com/photo-1554224154-22dec7ec8818?auto=format&fit=crop&w=1400&q=60',
+  'S&T (Margin Analysis)':
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1400&q=60',
+  Procurement:
+    'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1400&q=60',
+  Portfolio:
+    'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1400&q=60',
+  'Business Performance':
+    'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1400&q=60',
 };
+
+const DEFAULT_DOMAIN_IMAGE =
+  'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1400&q=60';
 
 export function HomePage() {
   const { user, signOut } = useAuth();
@@ -193,21 +60,27 @@ export function HomePage() {
   const [mode, setMode] = useState<UserMode>('user');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedDomain, setSelectedDomain] = useState<DomainTile | null>(null);
+  const [domainNames, setDomainNames] = useState<string[]>([]);
+  const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
   const [carouselStart, setCarouselStart] = useState(0);
   const [panelSearch, setPanelSearch] = useState('');
-  const [panelBU, setPanelBU] = useState('Reports');
+  const [panelBU, setPanelBU] = useState('All');
+  const [buOptions, setBuOptions] = useState<string[]>([]);
+  const [panelReports, setPanelReports] = useState<ReportLinkItem[]>([]);
+  const [dbAdminEmails, setDbAdminEmails] = useState<string[]>([]);
   const [newReport, setNewReport] = useState<NewReportForm>({
-    title: '',
-    link: '',
-    department: '',
-    imageUrl: '',
+    Domain_Name: '',
+    BU: '',
+    Report_Name: '',
+    Report_Desc: '',
+    Report_URL: '',
   });
-  const [cards, setCards] = useState<DashboardCard[]>(baseCards);
+  const [addReportError, setAddReportError] = useState('');
+  const [favorites, setFavorites] = useState<FavoriteReport[]>([]);
 
   const userDisplayName = user?.name?.trim() || user?.email?.split('@')[0] || 'User';
   const userEmail = user?.email || 'Not available';
-  const isAdminUser = isAdminEmail(user?.email);
+  const isAdminUser = dbAdminEmails.includes(user?.email?.trim().toLowerCase() ?? '');
   const userInitials = userDisplayName
     .split(/\s+/)
     .filter(Boolean)
@@ -215,55 +88,190 @@ export function HomePage() {
     .map((part) => part[0]?.toUpperCase() ?? '')
     .join('') || 'U';
 
-  const visibleCards = useMemo(() => {
-    const max = cards.length;
-    const items: DashboardCard[] = [];
+  const favoriteReportIds = useMemo(
+    () => new Set(favorites.map((favorite) => favorite.report_id)),
+    [favorites]
+  );
+
+  const visibleFavorites = useMemo(() => {
+    const max = favorites.length;
+    const items: FavoriteReport[] = [];
     for (let i = 0; i < Math.min(3, max); i += 1) {
-      items.push(cards[(carouselStart + i) % max]);
+      items.push(favorites[(carouselStart + i) % max]);
     }
     return items;
-  }, [cards, carouselStart]);
+  }, [favorites, carouselStart]);
 
-  const panelItems = useMemo(() => {
-    if (!selectedDomain) return [];
-    const base = domainMap[selectedDomain.title] ?? [];
-    const searched = panelSearch.trim().toLowerCase();
-    return base.filter((item) => {
-      if (panelBU !== 'Reports' && panelBU !== 'All') return false;
-      if (!searched) return true;
-      return (
-        item.title.toLowerCase().includes(searched) ||
-        item.description.toLowerCase().includes(searched)
-      );
-    });
-  }, [selectedDomain, panelSearch, panelBU]);
+  const domainTiles: DomainTile[] = useMemo(
+    () =>
+      domainNames.map((name) => ({
+        title: name,
+        image: DOMAIN_TILE_IMAGES[name] ?? DEFAULT_DOMAIN_IMAGE,
+      })),
+    [domainNames]
+  );
+
+  // Load distinct Domain_Name values once for the Domain tiles.
+  useEffect(() => {
+    let cancelled = false;
+    fetchDistinctDomains()
+      .then((domains) => {
+        if (!cancelled) setDomainNames(domains);
+      })
+      .catch((error) => {
+        console.error('Failed to load domains', error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Load AdminUsers-granted emails once, merged with the bootstrap admin list.
+  useEffect(() => {
+    let cancelled = false;
+    fetchAdminEmails()
+      .then((emails) => {
+        if (!cancelled) setDbAdminEmails(emails);
+      })
+      .catch((error) => {
+        console.error('Failed to load admin users', error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Load the signed-in user's favorited reports once.
+  useEffect(() => {
+    let cancelled = false;
+    fetchFavorites()
+      .then((items) => {
+        if (!cancelled) setFavorites(items);
+      })
+      .catch((error) => {
+        console.error('Failed to load favorites', error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Repopulate the BU dropdown whenever the selected domain changes.
+  useEffect(() => {
+    if (!selectedDomain) {
+      setBuOptions([]);
+      return;
+    }
+    let cancelled = false;
+    setPanelBU('All');
+    setPanelSearch('');
+    fetchDistinctBUs(selectedDomain)
+      .then((bus) => {
+        if (!cancelled) setBuOptions(bus);
+      })
+      .catch((error) => {
+        console.error('Failed to load BUs', error);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDomain]);
+
+  // Re-run the server-side filtered query whenever domain, BU, or search text changes.
+  useEffect(() => {
+    if (!selectedDomain) {
+      setPanelReports([]);
+      return;
+    }
+    let cancelled = false;
+    const handle = setTimeout(() => {
+      fetchReports(selectedDomain, panelBU === 'All' ? null : panelBU, panelSearch)
+        .then((reports) => {
+          if (!cancelled) setPanelReports(reports);
+        })
+        .catch((error) => {
+          console.error('Failed to load reports', error);
+        });
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [selectedDomain, panelBU, panelSearch]);
 
   const nextCards = () => {
-    setCarouselStart((current) => (current + 1) % cards.length);
+    if (favorites.length === 0) return;
+    setCarouselStart((current) => (current + 1) % favorites.length);
   };
 
   const prevCards = () => {
-    setCarouselStart((current) => (current - 1 + cards.length) % cards.length);
+    if (favorites.length === 0) return;
+    setCarouselStart((current) => (current - 1 + favorites.length) % favorites.length);
   };
 
-  const addReport = () => {
-    if (!newReport.title.trim()) return;
-    const description =
-      newReport.department.trim() || 'Custom report placeholder pending SQL data binding.';
-    const fresh: DashboardCard = {
-      id: `DB-${String(cards.length + 1).padStart(3, '0')}`,
-      title: newReport.title.trim(),
-      description,
-      domain: newReport.department.trim() || 'Custom',
-    };
-    setCards((current) => [fresh, ...current]);
-    setNewReport({ title: '', link: '', department: '', imageUrl: '' });
-    setShowAddModal(false);
+  const toggleFavorite = async (report: ReportLinkItem) => {
+    if (!user?.id) return;
+    const existing = favorites.find((favorite) => favorite.report_id === report.id);
+    try {
+      if (existing) {
+        await removeFavorite(existing.favoriteId);
+        setFavorites((current) =>
+          current.filter((favorite) => favorite.favoriteId !== existing.favoriteId)
+        );
+      } else {
+        const favoriteId = await addFavorite(user.id, report.id);
+        setFavorites((current) => [
+          ...current,
+          {
+            favoriteId,
+            report_id: report.id,
+            Report_Name: report.Report_Name,
+            Report_Desc: report.Report_Desc,
+            Report_URL: report.Report_URL,
+            Domain_Name: report.Domain_Name,
+            BU: report.BU,
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('Failed to toggle favorite', error);
+    }
   };
 
-  const openDomainPanel = (domainTitle: string) => {
-    const match = domainTiles.find((tile) => tile.title === domainTitle) ?? null;
-    setSelectedDomain(match);
+  const addReport = async () => {
+    if (!newReport.Domain_Name.trim() || !newReport.Report_Name.trim()) return;
+    setAddReportError('');
+    try {
+      await createReportLink({
+        Domain_Name: newReport.Domain_Name.trim(),
+        BU: newReport.BU.trim(),
+        Report_Name: newReport.Report_Name.trim(),
+        Report_Desc: newReport.Report_Desc.trim(),
+        Report_URL: newReport.Report_URL.trim(),
+      });
+      setNewReport({ Domain_Name: '', BU: '', Report_Name: '', Report_Desc: '', Report_URL: '' });
+      setShowAddModal(false);
+
+      fetchDistinctDomains()
+        .then(setDomainNames)
+        .catch((error) => console.error('Failed to reload domains', error));
+      if (selectedDomain) {
+        fetchDistinctBUs(selectedDomain)
+          .then(setBuOptions)
+          .catch((error) => console.error('Failed to reload BUs', error));
+        fetchReports(selectedDomain, panelBU === 'All' ? null : panelBU, panelSearch)
+          .then(setPanelReports)
+          .catch((error) => console.error('Failed to reload reports', error));
+      }
+    } catch (error) {
+      console.error('Failed to create report', error);
+      setAddReportError('Could not save the report. Please try again.');
+    }
+  };
+
+  const openReport = (url: string) => {
+    if (!url) return;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -417,9 +425,14 @@ export function HomePage() {
             </button>
 
             <div className="grid gap-3 md:grid-cols-3">
-              {visibleCards.map((card) => (
+              {favorites.length === 0 && (
+                <p className="col-span-full text-sm text-slate-500">
+                  No favourites yet — star a report to see it here.
+                </p>
+              )}
+              {visibleFavorites.map((favorite) => (
                 <article
-                  key={card.id}
+                  key={favorite.favoriteId}
                   className="rounded-xl border border-white/80 bg-white/95 p-3 shadow-md shadow-violet-900/10"
                 >
                   <div className="flex items-start gap-2.5">
@@ -434,25 +447,38 @@ export function HomePage() {
 
                     <div className="min-w-0 flex-1 pr-1">
                       <h3 className="line-clamp-2 min-h-[2.5em] text-[16px] font-semibold leading-[1.25] text-slate-900 md:text-[17px]">
-                        {card.title}
+                        {favorite.Report_Name}
                       </h3>
                       <p className="mt-1 line-clamp-2 min-h-[2.3em] text-[12px] leading-[1.25] text-slate-500 md:text-[13px]">
-                        {card.description}
+                        {favorite.Report_Desc}
                       </p>
                     </div>
 
-                    <button type="button" className="pt-0.5 text-lg text-slate-300 hover:text-violet-700">
-                      ☆
+                    <button
+                      type="button"
+                      onClick={() => {
+                        removeFavorite(favorite.favoriteId)
+                          .then(() => {
+                            setFavorites((current) =>
+                              current.filter((item) => item.favoriteId !== favorite.favoriteId)
+                            );
+                          })
+                          .catch((error) => console.error('Failed to remove favorite', error));
+                      }}
+                      aria-label="Remove from favourites"
+                      className="pt-0.5 text-lg text-amber-400 transition hover:text-amber-500"
+                    >
+                      ★
                     </button>
                   </div>
 
                   <div className="mt-2.5 flex gap-2">
                     <button
                       type="button"
-                      onClick={() => openDomainPanel(card.domain)}
+                      onClick={() => openReport(favorite.Report_URL)}
                       className="w-full rounded-md bg-violet-700 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-violet-600"
                     >
-                      View reports
+                      View report
                     </button>
                     {mode === 'admin' && (
                       <button
@@ -485,7 +511,7 @@ export function HomePage() {
               <button
                 key={tile.title}
                 type="button"
-                onClick={() => setSelectedDomain(tile)}
+                onClick={() => setSelectedDomain(tile.title)}
                 className="group relative h-24 overflow-hidden rounded-xl text-left shadow-md shadow-violet-900/20 transition duration-300 hover:scale-[1.01] hover:shadow-xl hover:shadow-violet-900/30 md:h-[7.25rem]"
               >
                 <img src={tile.image} alt={tile.title} className="h-full w-full object-cover" />
@@ -510,7 +536,7 @@ export function HomePage() {
           <aside className="fixed right-0 top-0 z-50 h-full w-full max-w-[560px] border-l border-slate-200 bg-white shadow-2xl lg:w-[34vw]">
             <div className="flex h-full flex-col">
               <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3.5">
-                <h3 className="text-[19px] font-semibold text-slate-900">{selectedDomain.title} Dashboards</h3>
+                <h3 className="text-[19px] font-semibold text-slate-900">{selectedDomain} Dashboards</h3>
                 <button
                   type="button"
                   onClick={() => setSelectedDomain(null)}
@@ -538,8 +564,12 @@ export function HomePage() {
                       onChange={(event) => setPanelBU(event.target.value)}
                       className="mt-1 w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-[13px] outline-none focus:border-violet-400"
                     >
-                      <option>Reports</option>
-                      <option>All</option>
+                      <option value="All">All</option>
+                      {buOptions.map((bu) => (
+                        <option key={bu} value={bu}>
+                          {bu}
+                        </option>
+                      ))}
                     </select>
                   </label>
                 </div>
@@ -547,9 +577,18 @@ export function HomePage() {
 
               <div className="flex-1 overflow-y-auto px-4 py-3.5">
                 <div className="space-y-2.5">
-                  {panelItems.map((item) => (
+                  {panelReports.map((item) => (
                     <article
                       key={item.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => openReport(item.Report_URL)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          openReport(item.Report_URL);
+                        }
+                      }}
                       className="flex w-full items-start justify-between rounded-xl border border-slate-200 px-3 py-2.5 text-left transition hover:border-violet-300 hover:bg-violet-50/40"
                     >
                       <div className="flex items-start gap-2.5">
@@ -562,11 +601,27 @@ export function HomePage() {
                           </svg>
                         </span>
                         <span>
-                          <span className="block text-[16px] font-semibold text-slate-900">{item.title}</span>
-                          <span className="block text-[14px] text-slate-500">{item.description}</span>
+                          <span className="block text-[16px] font-semibold text-slate-900">{item.Report_Name}</span>
+                          <span className="block text-[14px] text-slate-500">{item.Report_Desc}</span>
                         </span>
                       </div>
-                      <span className="pt-1 text-xl text-slate-300">☆</span>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void toggleFavorite(item);
+                        }}
+                        aria-label={
+                          favoriteReportIds.has(item.id) ? 'Remove from favourites' : 'Add to favourites'
+                        }
+                        className={`pt-1 text-xl transition ${
+                          favoriteReportIds.has(item.id)
+                            ? 'text-amber-400'
+                            : 'text-slate-300 hover:text-amber-300'
+                        }`}
+                      >
+                        {favoriteReportIds.has(item.id) ? '★' : '☆'}
+                      </button>
                     </article>
                   ))}
                 </div>
@@ -594,52 +649,72 @@ export function HomePage() {
             <div className="mt-4 grid gap-3">
               <input
                 type="text"
-                value={newReport.title}
+                value={newReport.Domain_Name}
                 onChange={(event) =>
                   setNewReport((current) => ({
                     ...current,
-                    title: event.target.value,
+                    Domain_Name: event.target.value,
                   }))
                 }
+                maxLength={200}
+                placeholder="Domain Name"
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-violet-400"
+              />
+              <input
+                type="text"
+                value={newReport.BU}
+                onChange={(event) =>
+                  setNewReport((current) => ({
+                    ...current,
+                    BU: event.target.value,
+                  }))
+                }
+                maxLength={200}
+                placeholder="BU"
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-violet-400"
+              />
+              <input
+                type="text"
+                value={newReport.Report_Name}
+                onChange={(event) =>
+                  setNewReport((current) => ({
+                    ...current,
+                    Report_Name: event.target.value,
+                  }))
+                }
+                maxLength={300}
                 placeholder="Report Name"
                 className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-violet-400"
               />
-              <input
-                type="text"
-                value={newReport.link}
+              <textarea
+                value={newReport.Report_Desc}
                 onChange={(event) =>
                   setNewReport((current) => ({
                     ...current,
-                    link: event.target.value,
+                    Report_Desc: event.target.value,
                   }))
                 }
-                placeholder="Report Link"
+                maxLength={1000}
+                rows={3}
+                placeholder="Report Description"
                 className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-violet-400"
               />
               <input
                 type="text"
-                value={newReport.department}
+                value={newReport.Report_URL}
                 onChange={(event) =>
                   setNewReport((current) => ({
                     ...current,
-                    department: event.target.value,
+                    Report_URL: event.target.value,
                   }))
                 }
-                placeholder="Department"
+                maxLength={2048}
+                placeholder="Report URL"
                 className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-violet-400"
               />
-              <input
-                type="text"
-                value={newReport.imageUrl}
-                onChange={(event) =>
-                  setNewReport((current) => ({
-                    ...current,
-                    imageUrl: event.target.value,
-                  }))
-                }
-                placeholder="Image URL"
-                className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-violet-400"
-              />
+              {addReportError && (
+                <p className="text-sm text-red-600">{addReportError}</p>
+              )}
             </div>
 
             <div className="mt-4 flex justify-end gap-2">
@@ -652,7 +727,7 @@ export function HomePage() {
               </button>
               <button
                 type="button"
-                onClick={addReport}
+                onClick={() => void addReport()}
                 className="rounded-lg bg-violet-700 px-4 py-2 text-sm font-semibold text-white"
               >
                 Submit

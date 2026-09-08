@@ -1,6 +1,6 @@
 import type { RayfinClient } from '@microsoft/rayfin-client';
 
-import type { BlankAppSchema } from '../../rayfin/data/schema';
+import type { AppSchema } from '../../rayfin/data/schema';
 
 import { type AuthUser, type IAuthService, toAuthUser } from './IAuthService';
 
@@ -34,7 +34,7 @@ function writeLocalUser(user: AuthUser): void {
 export class MockAuthService implements IAuthService {
   readonly fabricAuthEnabled = false;
 
-  constructor(_client: RayfinClient<BlankAppSchema>) {}
+  constructor(_client: RayfinClient<AppSchema>) {}
 
   async signIn(): Promise<AuthUser> {
     const user = toAuthUser(LOCAL_USER);
