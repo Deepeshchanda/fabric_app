@@ -2,13 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 import { AuthPage } from '@/components/AuthPage';
 import { useAuth } from '@/hooks/AuthContext';
-import { BusinessPerformanceDashboardPage } from '@/pages/BusinessPerformanceDashboardPage';
-import { GlobalOpexDashboardPage } from '@/pages/GlobalOpexDashboardPage';
 import { HomePage } from '@/pages/HomePage';
-import { PLDashboardPage } from '@/pages/PLDashboardPage';
-import { PortfolioDashboardPage } from '@/pages/PortfolioDashboardPage';
-import { ProcurementDashboardPage } from '@/pages/ProcurementDashboardPage';
-import { SalesDashboardPage } from '@/pages/SalesDashboardPage';
 
 function AuthGuard({
   children,
@@ -51,54 +45,6 @@ function App() {
           element={
             <AuthGuard requireAuth={true}>
               <HomePage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/dashboards/sales"
-          element={
-            <AuthGuard requireAuth={true}>
-              <SalesDashboardPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/dashboards/global-opex"
-          element={
-            <AuthGuard requireAuth={true}>
-              <GlobalOpexDashboardPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/dashboards/pl"
-          element={
-            <AuthGuard requireAuth={true}>
-              <PLDashboardPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/dashboards/procurement"
-          element={
-            <AuthGuard requireAuth={true}>
-              <ProcurementDashboardPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/dashboards/portfolio"
-          element={
-            <AuthGuard requireAuth={true}>
-              <PortfolioDashboardPage />
-            </AuthGuard>
-          }
-        />
-        <Route
-          path="/dashboards/business-performance"
-          element={
-            <AuthGuard requireAuth={true}>
-              <BusinessPerformanceDashboardPage />
             </AuthGuard>
           }
         />
