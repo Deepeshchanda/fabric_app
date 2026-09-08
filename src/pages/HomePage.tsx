@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 import { isAdminEmail } from '@/admin';
 import { useAuth } from '@/hooks/AuthContext';
@@ -16,14 +15,12 @@ type DashboardCard = {
 type DomainTile = {
   title: string;
   image: string;
-  route: string;
 };
 
 type PanelDashboard = {
   id: string;
   title: string;
   description: string;
-  route: string;
 };
 
 type NewReportForm = {
@@ -73,43 +70,36 @@ const domainTiles: DomainTile[] = [
     title: 'Sales',
     image:
       'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=60',
-    route: '/dashboards/sales',
   },
   {
     title: 'Global Opex',
     image:
       'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=60',
-    route: '/dashboards/global-opex',
   },
   {
     title: 'P&L',
     image:
       'https://images.unsplash.com/photo-1554224154-22dec7ec8818?auto=format&fit=crop&w=1400&q=60',
-    route: '/dashboards/pl',
   },
   {
     title: 'S&T (Margin Analysis)',
     image:
       'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1400&q=60',
-    route: '/dashboards/pl',
   },
   {
     title: 'Procurement',
     image:
       'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1400&q=60',
-    route: '/dashboards/procurement',
   },
   {
     title: 'Portfolio',
     image:
       'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1400&q=60',
-    route: '/dashboards/portfolio',
   },
   {
     title: 'Business Performance',
     image:
       'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1400&q=60',
-    route: '/dashboards/business-performance',
   },
 ];
 
@@ -118,37 +108,31 @@ const globalOpexDashboards: PanelDashboard[] = [
     id: 'OPX-001',
     title: 'Global Opex',
     description: 'Operating expenses overview with cost pools',
-    route: '/dashboards/global-opex',
   },
   {
     id: 'OPX-002',
     title: 'Staff Cost',
     description: 'Headcount and employee cost analysis',
-    route: '/dashboards/global-opex',
   },
   {
     id: 'OPX-003',
     title: 'Travex-Travel Analysis',
     description: 'Travel expenses and trends',
-    route: '/dashboards/global-opex',
   },
   {
     id: 'OPX-004',
     title: 'Employee Reimbursement',
     description: 'Reimbursement tracking and expense breakdown',
-    route: '/dashboards/global-opex',
   },
   {
     id: 'OPX-005',
     title: 'Opex Trend',
     description: 'Monthly operating expense trends',
-    route: '/dashboards/global-opex',
   },
   {
     id: 'OPX-006',
     title: 'Legal Spend',
     description: 'Legal expenditure reporting',
-    route: '/dashboards/global-opex',
   },
 ];
 
@@ -158,13 +142,11 @@ const domainMap: Record<string, PanelDashboard[]> = {
       id: 'SLS-001',
       title: 'Sales KPI Board',
       description: 'Revenue, growth and conversion summary',
-      route: '/dashboards/sales',
     },
     {
       id: 'SLS-002',
       title: 'Region Mix',
       description: 'Performance by market and territory',
-      route: '/dashboards/sales',
     },
   ],
   'Global Opex': globalOpexDashboards,
@@ -173,7 +155,6 @@ const domainMap: Record<string, PanelDashboard[]> = {
       id: 'PL-001',
       title: 'P&L Snapshot',
       description: 'Revenue, cost, margin and variance view',
-      route: '/dashboards/pl',
     },
   ],
   'S&T (Margin Analysis)': [
@@ -181,7 +162,6 @@ const domainMap: Record<string, PanelDashboard[]> = {
       id: 'ST-001',
       title: 'Margin Analyzer',
       description: 'Scenario-level margin trend analysis',
-      route: '/dashboards/pl',
     },
   ],
   Procurement: [
@@ -189,7 +169,6 @@ const domainMap: Record<string, PanelDashboard[]> = {
       id: 'PRC-001',
       title: 'Procurement Insights',
       description: 'Supplier health and purchase order lens',
-      route: '/dashboards/procurement',
     },
   ],
   Portfolio: [
@@ -197,7 +176,6 @@ const domainMap: Record<string, PanelDashboard[]> = {
       id: 'PFL-001',
       title: 'Portfolio Overview',
       description: 'Project and investment tracking cockpit',
-      route: '/dashboards/portfolio',
     },
   ],
   'Business Performance': [
@@ -205,13 +183,11 @@ const domainMap: Record<string, PanelDashboard[]> = {
       id: 'BIZ-001',
       title: 'Executive Scorecard',
       description: 'Organization-wide KPI and trend analyzer',
-      route: '/dashboards/business-performance',
     },
   ],
 };
 
 export function HomePage() {
-  const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
   const [mode, setMode] = useState<UserMode>('user');
@@ -283,6 +259,11 @@ export function HomePage() {
     setCards((current) => [fresh, ...current]);
     setNewReport({ title: '', link: '', department: '', imageUrl: '' });
     setShowAddModal(false);
+  };
+
+  const openDomainPanel = (domainTitle: string) => {
+    const match = domainTiles.find((tile) => tile.title === domainTitle) ?? null;
+    setSelectedDomain(match);
   };
 
   return (
@@ -468,10 +449,10 @@ export function HomePage() {
                   <div className="mt-2.5 flex gap-2">
                     <button
                       type="button"
-                      onClick={() => window.open('/dashboards/sales', '_blank', 'noopener,noreferrer')}
+                      onClick={() => openDomainPanel(card.domain)}
                       className="w-full rounded-md bg-violet-700 px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-violet-600"
                     >
-                      Open report 📊
+                      View reports
                     </button>
                     {mode === 'admin' && (
                       <button
@@ -567,10 +548,8 @@ export function HomePage() {
               <div className="flex-1 overflow-y-auto px-4 py-3.5">
                 <div className="space-y-2.5">
                   {panelItems.map((item) => (
-                    <button
+                    <article
                       key={item.id}
-                      type="button"
-                      onClick={() => navigate(item.route)}
                       className="flex w-full items-start justify-between rounded-xl border border-slate-200 px-3 py-2.5 text-left transition hover:border-violet-300 hover:bg-violet-50/40"
                     >
                       <div className="flex items-start gap-2.5">
@@ -588,7 +567,7 @@ export function HomePage() {
                         </span>
                       </div>
                       <span className="pt-1 text-xl text-slate-300">☆</span>
-                    </button>
+                    </article>
                   ))}
                 </div>
               </div>
@@ -596,11 +575,11 @@ export function HomePage() {
               <div className="border-t border-slate-200 p-4">
                 <button
                   type="button"
-                  onClick={() => navigate(selectedDomain.route)}
+                  onClick={() => setSelectedDomain(null)}
                   className="flex w-full items-center gap-2.5 rounded-xl bg-violet-100 px-3 py-3 text-left text-violet-900 transition hover:bg-violet-200"
                 >
                   <span className="grid h-9 w-9 place-items-center rounded-lg bg-violet-700 text-white">▣</span>
-                  <span className="text-[16px] font-semibold">Explore - Create your own reports</span>
+                  <span className="text-[16px] font-semibold">Back to Home</span>
                 </button>
               </div>
             </div>
