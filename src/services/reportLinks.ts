@@ -63,6 +63,18 @@ export async function fetchReports(
     .execute();
 }
 
+/** Reports whose name matches the search text, across all domains. */
+export async function searchReportsByName(searchText: string): Promise<ReportLinkItem[]> {
+  const trimmedSearch = searchText.trim();
+  if (!trimmedSearch) return [];
+
+  return getRayfinClient()
+    .data.Report_links.select([...REPORT_FIELDS])
+    .where({ Report_Name: { contains: trimmedSearch } })
+    .orderBy({ Report_Name: 'asc' })
+    .execute();
+}
+
 /** Inserts a new report row directly into the Report_links table. */
 export async function createReportLink(
   input: Omit<ReportLinkItem, 'id'>

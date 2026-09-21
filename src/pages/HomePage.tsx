@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import askMiLogo from '@/assets/askmi-logo.png';
+import searchIcon from '@/assets/search-icon.png';
 import { useAuth } from '@/hooks/AuthContext';
 import { fetchAdminEmails } from '@/services/adminUsers';
 import {
@@ -13,6 +15,7 @@ import {
   fetchDistinctBUs,
   fetchDistinctDomains,
   fetchReports,
+  searchReportsByName,
   type ReportLinkItem,
 } from '@/services/reportLinks';
 
@@ -31,7 +34,10 @@ type NewReportForm = {
   Report_URL: string;
 };
 
-const navItems = ['DOWNLOAD DATA', 'DATA PULSE', 'LEARNING', 'NEED HELP'];
+const RAISE_INCIDENT_URL = 'https://techease.mydrreddys.com/techease';
+
+// The BU filter only ever offers Enterprise and EM; EM is included only when the domain has it.
+const ALLOWED_BU_OPTIONS = ['Enterprise', 'EM'];
 
 // Background images for known domains; unrecognized Domain_Name values fall back to DEFAULT_DOMAIN_IMAGE.
 const DOMAIN_TILE_IMAGES: Record<string, string> = {
@@ -59,13 +65,17 @@ export function HomePage() {
 
   const [mode, setMode] = useState<UserMode>('user');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showHelpMenu, setShowHelpMenu] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [domainNames, setDomainNames] = useState<string[]>([]);
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
   const [carouselStart, setCarouselStart] = useState(0);
   const [panelSearch, setPanelSearch] = useState('');
-  const [panelBU, setPanelBU] = useState('All');
-  const [buOptions, setBuOptions] = useState<string[]>([]);
+  const [topSearch, setTopSearch] = useState('');
+  const [topSearchResults, setTopSearchResults] = useState<ReportLinkItem[]>([]);
+  const [showTopSearchResults, setShowTopSearchResults] = useState(false);
+  const [panelBU, setPanelBU] = useState('Enterprise');
+  const [buOptions, setBuOptions] = useState<string[]>(['Enterprise']);
   const [panelReports, setPanelReports] = useState<ReportLinkItem[]>([]);
   const [dbAdminEmails, setDbAdminEmails] = useState<string[]>([]);
   const [newReport, setNewReport] = useState<NewReportForm>({
@@ -102,14 +112,21 @@ export function HomePage() {
     return items;
   }, [favorites, carouselStart]);
 
-  const domainTiles: DomainTile[] = useMemo(
-    () =>
-      domainNames.map((name) => ({
-        title: name,
-        image: DOMAIN_TILE_IMAGES[name] ?? DEFAULT_DOMAIN_IMAGE,
-      })),
-    [domainNames]
-  );
+  const domainTiles: DomainTile[] = useMemo(() => {
+    const knownOrder = Object.keys(DOMAIN_TILE_IMAGES);
+    const sortedNames = [...domainNames].sort((a, b) => {
+      const indexA = knownOrder.indexOf(a);
+      const indexB = knownOrder.indexOf(b);
+      if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+      return indexA - indexB;
+    });
+    return sortedNames.map((name) => ({
+      title: name,
+      image: DOMAIN_TILE_IMAGES[name] ?? DEFAULT_DOMAIN_IMAGE,
+    }));
+  }, [domainNames]);
 
   // Load distinct Domain_Name values once for the Domain tiles.
   useEffect(() => {
@@ -156,18 +173,20 @@ export function HomePage() {
     };
   }, []);
 
-  // Repopulate the BU dropdown whenever the selected domain changes.
+  // Repopulate the BU dropdown whenever the selected domain changes: Enterprise is always
+  // offered, EM only when this domain actually has EM-tagged reports.
   useEffect(() => {
     if (!selectedDomain) {
-      setBuOptions([]);
+      setBuOptions(['Enterprise']);
       return;
     }
     let cancelled = false;
-    setPanelBU('All');
+    setPanelBU('Enterprise');
     setPanelSearch('');
     fetchDistinctBUs(selectedDomain)
       .then((bus) => {
-        if (!cancelled) setBuOptions(bus);
+        if (cancelled) return;
+        setBuOptions(ALLOWED_BU_OPTIONS.filter((bu) => bu === 'Enterprise' || bus.includes(bu)));
       })
       .catch((error) => {
         console.error('Failed to load BUs', error);
@@ -177,6 +196,29 @@ export function HomePage() {
     };
   }, [selectedDomain]);
 
+  // Search reports by name across all domains for the top search bar.
+  useEffect(() => {
+    const trimmedSearch = topSearch.trim();
+    if (!trimmedSearch) {
+      setTopSearchResults([]);
+      return;
+    }
+    let cancelled = false;
+    const handle = setTimeout(() => {
+      searchReportsByName(trimmedSearch)
+        .then((reports) => {
+          if (!cancelled) setTopSearchResults(reports);
+        })
+        .catch((error) => {
+          console.error('Failed to search reports', error);
+        });
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [topSearch]);
+
   // Re-run the server-side filtered query whenever domain, BU, or search text changes.
   useEffect(() => {
     if (!selectedDomain) {
@@ -185,7 +227,7 @@ export function HomePage() {
     }
     let cancelled = false;
     const handle = setTimeout(() => {
-      fetchReports(selectedDomain, panelBU === 'All' ? null : panelBU, panelSearch)
+      fetchReports(selectedDomain, panelBU, panelSearch)
         .then((reports) => {
           if (!cancelled) setPanelReports(reports);
         })
@@ -257,9 +299,11 @@ export function HomePage() {
         .catch((error) => console.error('Failed to reload domains', error));
       if (selectedDomain) {
         fetchDistinctBUs(selectedDomain)
-          .then(setBuOptions)
+          .then((bus) => {
+            setBuOptions(ALLOWED_BU_OPTIONS.filter((bu) => bu === 'Enterprise' || bus.includes(bu)));
+          })
           .catch((error) => console.error('Failed to reload BUs', error));
-        fetchReports(selectedDomain, panelBU === 'All' ? null : panelBU, panelSearch)
+        fetchReports(selectedDomain, panelBU, panelSearch)
           .then(setPanelReports)
           .catch((error) => console.error('Failed to reload reports', error));
       }
@@ -279,26 +323,52 @@ export function HomePage() {
       <div className="fixed inset-0 -z-20 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.62),transparent_32%),radial-gradient(circle_at_80%_15%,rgba(105,74,220,0.25),transparent_38%),linear-gradient(180deg,#dfe3ff_0%,#ccd4ff_60%,#c2ceff_100%)]" />
       <div className="fixed inset-0 -z-10 bg-[linear-gradient(145deg,rgba(255,255,255,0.18)_0%,transparent_45%,rgba(109,80,224,0.10)_100%)]" />
 
-      <header className="sticky top-0 z-30 border-b border-violet-200 bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-violet-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-12 w-full max-w-[1320px] items-center justify-between px-4 lg:px-5">
-          <div className="flex items-center gap-2 text-violet-700">
-            <div className="grid h-5 w-5 place-items-center rounded-full bg-violet-700 text-[10px] font-bold text-white">
-              ◉
-            </div>
-            <span className="text-[18px] font-semibold leading-none">Ask.mi</span>
+          <div className="flex items-center">
+            <img src={askMiLogo} alt="Ask.mi" className="h-6 w-auto" />
           </div>
 
           <div className="flex items-center gap-3 lg:gap-5">
             <div className="flex items-center gap-3 md:gap-6">
-              {navItems.map((item) => (
+              <div className="relative">
                 <button
-                  key={item}
                   type="button"
-                  className="text-[10px] font-semibold tracking-wide text-slate-700 transition hover:text-violet-700 sm:text-[11px] md:text-[12px]"
+                  onClick={() => setShowHelpMenu((current) => !current)}
+                  className="flex items-center gap-1 text-[10px] font-semibold tracking-wide text-slate-700 transition hover:text-violet-700 sm:text-[11px] md:text-[12px]"
                 >
-                  {item}
+                  NEED HELP
+                  <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
                 </button>
-              ))}
+
+                {showHelpMenu && (
+                  <div className="absolute right-0 top-9 z-40 w-72 rounded-xl border border-slate-200 bg-white p-3 shadow-2xl">
+                    <p className="px-1 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">
+                      Help
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        window.open(RAISE_INCIDENT_URL, '_blank', 'noopener,noreferrer');
+                        setShowHelpMenu(false);
+                      }}
+                      className="mt-2 flex w-full items-start gap-2.5 rounded-lg px-2 py-2 text-left transition hover:bg-violet-50"
+                    >
+                      <span className="mt-0.5 text-lg">⚠️</span>
+                      <span>
+                        <span className="block text-sm font-semibold text-slate-900">
+                          Raise Incident/Access Request
+                        </span>
+                        <span className="mt-0.5 block text-xs text-slate-500">
+                          Report an issue or request access for a particular resource.
+                        </span>
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {isAdminUser && (
                 <div className="rounded-full border border-violet-200 bg-violet-50 p-0.5">
@@ -354,38 +424,89 @@ export function HomePage() {
       </header>
 
       <main className="mx-auto w-full max-w-[1320px] px-4 pb-8 pt-6 lg:px-5">
-        <section className="reveal-up">
+        <section className="relative z-30 reveal-up">
           <h1 className="welcome-flow text-[24px] font-semibold tracking-tight text-slate-900 lg:text-[28px]">
             Welcome back,
-            <span className="name-marquee text-violet-700" role="text" aria-label={userDisplayName}>
-              <span className="name-marquee__track" aria-hidden="true">
-                <span>{userDisplayName}</span>
-                <span>{userDisplayName}</span>
-              </span>
-            </span>
+            <span className="ml-1 text-violet-700">{userDisplayName}</span>
           </h1>
 
-          <div className="mt-4 flex items-center gap-2.5 rounded-xl border border-white/80 bg-white px-3 py-2.5 shadow-lg shadow-violet-900/10">
-            <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-orange-300 to-violet-500 text-white">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="6" />
-                <path d="m19 19-3.5-3.5" />
-              </svg>
+          <div className="relative mt-4">
+            <div className="flex items-center gap-2.5 rounded-xl border border-white/80 bg-white px-3 py-2.5 shadow-lg shadow-violet-900/10">
+              <button
+                type="button"
+                onClick={() => window.open('https://conv-bi-askmi.drreddys.com/', '_blank', 'noopener,noreferrer')}
+                className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-orange-300 to-violet-500 text-white"
+              >
+                <img src={searchIcon} alt="" className="h-6 w-6 object-contain" />
+              </button>
+              <input
+                type="text"
+                value={topSearch}
+                onChange={(event) => {
+                  setTopSearch(event.target.value);
+                  setShowTopSearchResults(true);
+                }}
+                onFocus={() => setShowTopSearchResults(true)}
+                onBlur={() => setTimeout(() => setShowTopSearchResults(false), 150)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && topSearchResults.length > 0) {
+                    openReport(topSearchResults[0].Report_URL);
+                    setShowTopSearchResults(false);
+                  }
+                }}
+                placeholder="Search the reports"
+                className="w-full bg-transparent text-[15px] text-slate-600 outline-none placeholder:text-slate-400 md:text-[17px]"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  if (topSearchResults.length > 0) {
+                    openReport(topSearchResults[0].Report_URL);
+                    setShowTopSearchResults(false);
+                  }
+                }}
+                className="grid h-8 w-8 place-items-center rounded-full border-2 border-violet-600 text-violet-600"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M5 12h14" />
+                  <path d="m13 5 7 7-7 7" />
+                </svg>
+              </button>
             </div>
-            <input
-              type="text"
-              placeholder="Try asking Blink - Show me the OpEx breakdown"
-              className="w-full bg-transparent text-[15px] text-slate-600 outline-none placeholder:text-slate-400 md:text-[17px]"
-            />
-            <button
-              type="button"
-              className="grid h-8 w-8 place-items-center rounded-full border-2 border-violet-600 text-violet-600"
-            >
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M5 12h14" />
-                <path d="m13 5 7 7-7 7" />
-              </svg>
-            </button>
+
+            {showTopSearchResults && topSearch.trim() && (
+              <div className="absolute left-0 right-0 top-full z-30 mt-2 max-h-80 overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl">
+                {topSearchResults.length === 0 ? (
+                  <p className="px-4 py-3 text-sm text-slate-500">No reports found.</p>
+                ) : (
+                  topSearchResults.map((report) => (
+                    <div
+                      key={report.id}
+                      className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-2.5 last:border-b-0 hover:bg-violet-50/60"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900">{report.Report_Name}</p>
+                        <p className="truncate text-xs text-slate-500">{report.Report_Desc}</p>
+                        <p className="mt-0.5 text-[11px] uppercase tracking-wide text-slate-400">
+                          {report.Domain_Name} • {report.BU}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => {
+                          openReport(report.Report_URL);
+                          setShowTopSearchResults(false);
+                        }}
+                        className="shrink-0 rounded-md bg-violet-700 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-violet-600"
+                      >
+                        View report
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </section>
 
@@ -564,7 +685,6 @@ export function HomePage() {
                       onChange={(event) => setPanelBU(event.target.value)}
                       className="mt-1 w-full rounded-md border border-slate-300 px-2.5 py-1.5 text-[13px] outline-none focus:border-violet-400"
                     >
-                      <option value="All">All</option>
                       {buOptions.map((bu) => (
                         <option key={bu} value={bu}>
                           {bu}
